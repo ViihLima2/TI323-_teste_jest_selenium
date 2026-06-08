@@ -23,3 +23,15 @@ test('Calcula IMC obesidade', () => {
     ).toBe('46.87');
 
 });
+
+test('Não permite altura zero', () => {
+    expect(() => calcularIMC(70, 0)).toThrow();
+});
+
+test('Não permite peso negativo', () => {
+    expect(() => calcularIMC(-70, 1.75)).toThrow();
+});
+
+test('Não permite altura negativa', () => {
+    expect(() => calcularIMC(70, -1.75)).toThrow();
+});

@@ -1,4 +1,4 @@
-const { Builder } = require('selenium-webdriver');
+const { Builder, By } = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
 const fs = require('fs');
 const path = require('path');
@@ -12,7 +12,6 @@ if (!fs.existsSync(SCREENSHOTS_DIR)) {
 let driver;
 
 async function tiraFoto(nome) {
-
     const imagem = await driver.takeScreenshot();
 
     fs.writeFileSync(
@@ -21,13 +20,37 @@ async function tiraFoto(nome) {
         'base64'
     );
 
-    console.log(`Foto salva: ${nome}.png`);
+    console.log(`📸 Foto salva: ${nome}.png`);
+}
+
+async function testarCaso(peso, altura, nomePrint, esperado) {
+    await driver.get('http://127.0.0.1:5500/frontend/index.html');
+
+    await driver.sleep(1000);
+
+    await driver.findElement(By.id('peso')).clear();
+    await driver.findElement(By.id('peso')).sendKeys(String(peso));
+
+    await driver.findElement(By.id('altura')).clear();
+    await driver.findElement(By.id('altura')).sendKeys(String(altura));
+
+    await driver.findElement(By.tagName('button')).click();
+
+    await driver.sleep(1000);
+
+    const resultado = await driver.findElement(By.id('resultado')).getText();
+
+    console.log(`Resultado (${nomePrint}):`, resultado);
+
+    await tiraFoto(nomePrint);
+
+    if (resultado !== esperado) {
+        throw new Error(`Falha no teste ${nomePrint}: esperado ${esperado}, veio ${resultado}`);
+    }
 }
 
 async function main() {
-
     try {
-
         const options = new chrome.Options();
 
         options.addArguments(
@@ -42,45 +65,31 @@ async function main() {
             .setChromeOptions(options)
             .build();
 
-        await driver.get(
-            'http://127.0.0.1:5500/frontend/index.html'
+        console.log('Iniciando testes E2E');
+
+        // =========================
+        // CASO VÁLIDO
+        // =========================
+        await testarCaso(
+            70,
+            1.75,
+            '01_valido_22_86',
+            '22.86'
         );
 
-        await driver.sleep(2000);
+        // =========================
+        // CASO INVÁLIDO (NEGATIVO)
+        // =========================
+        await testarCaso(
+            -50,
+            1.70,
+            '02_invalido_peso_negativo',
+            'Valores inválidos'
+        );
 
-        console.log('Página carregada');
-
-        await tiraFoto('01_pagina_aberta');
-
-        const resultado = await driver.executeScript(`
-
-            const peso = 70;
-            const altura = 1.75;
-
-            const imc = peso / (altura * altura);
-
-            document.getElementById('resultado').innerText =
-                imc.toFixed(2);
-
-            return document.getElementById('resultado').innerText;
-
-        `);
-
-        await tiraFoto('02_resultado');
-
-        console.log('Resultado encontrado:', resultado);
-
-        if (resultado !== '22.86') {
-
-            throw new Error(
-                'Resultado incorreto: ' + resultado
-            );
-        }
-
-        console.log('Teste Selenium aprovado');
+        console.log('Todos os testes E2E passaram');
 
     } finally {
-
         if (driver) {
             await driver.quit();
         }
@@ -88,6 +97,6 @@ async function main() {
 }
 
 main().catch(err => {
-    console.error(err);
+    console.error('Erro no teste:', err.message);
     process.exit(1);
 });
