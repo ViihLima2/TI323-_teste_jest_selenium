@@ -1,0 +1,22 @@
+{
+  "name": "ti323-_teste_jest_selenium",
+  "version": "1.0.0",
+  "description": "Repositório para desenvolvimento da disciplina TI323 (CICD com testes)",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "jest tests/imc.test.js",
+    "test:e2e": "node tests/base.e2e.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^30.4.2"
+  },
+  "dependencies": {
+    "selenium-webdriver": "^4.44.0"
+  }
+}
